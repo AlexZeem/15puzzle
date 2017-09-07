@@ -6,12 +6,18 @@ class Logic : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int itemsInRow READ itemsInRow CONSTANT)
+    Q_PROPERTY(bool onlySolvable READ onlySolvable WRITE setOnlySolvable NOTIFY onlySolvableChanged)
 
 public:
     explicit Logic(QObject *parent = 0);
     ~Logic();
 
     int itemsInRow() const;
+    bool onlySolvable() const;
+    void setOnlySolvable(bool value);
+
+signals:
+    void onlySolvableChanged();
 
 protected:
     QHash<int, QByteArray> roleNames() const override;
