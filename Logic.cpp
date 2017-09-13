@@ -7,16 +7,7 @@ const int ITEMS_IN_ROW = 4;
 const int MODEL_LENGTH = 16;
 
 enum Roles {
-    Value = Qt::UserRole,
-    PositionX,
-    PositionY,
-};
-
-struct Tile
-{
-    int value;
-    int x;
-    int y;
+    Value = Qt::UserRole
 };
 
 struct Logic::Impl
@@ -28,66 +19,48 @@ struct Logic::Impl
     }
 
     bool isSolvable();
-    QPair<int, int> randomPosition();
-    void randomize(int value, QSet<QPair<int, int> > &filledSquares);
     void mix();
 
     bool onlySolvable;
-    QList<Tile> items;
+    QList<int> items;
 };
 
 bool Logic::Impl::isSolvable()
 {
     int n = 0;
-    int prevValue = items[0].value;
+    int prevValue = items[0];
     if (prevValue == 0) {
-        n = items[0].y + 1;
+        n = 1;
     }
 
     for (int i = 1; i < items.size(); ++i) {
-        if (items[i].value == 0) {
-            n += items[i].y + 1;
-        } else if (prevValue > items[i].value) {
+        if (items[i] == 0) {
+            n += i % ITEMS_IN_ROW + 1;
+        } else if (prevValue > items[i]) {
             n += 1;
         }
 
-        prevValue = items[i].value;
+        prevValue = items[i];
     }
 
     qDebug() << "isSolvable" << n << (n % 2 == 0);
     return (n % 2 == 0);
 }
 
-QPair<int, int> Logic::Impl::randomPosition()
-{
-    QPair<int, int> position;
-
-    position.first = qrand() % 4;
-    position.second = qrand() % 4;
-
-    return position;
-}
-
-void Logic::Impl::randomize(int value, QSet<QPair<int, int>>& filledSquares)
-{
-    QPair<int, int> position = randomPosition();
-
-    if (!filledSquares.contains(position)) {
-        items << Tile { value, position.first, position.second };
-        filledSquares << position;
-    } else {
-        randomize(value, filledSquares);
-    }
-}
-
 void Logic::Impl::mix()
 {
     items.clear();
-    QSet<QPair<int, int>> filledSquares;
     qsrand (QDateTime::currentMSecsSinceEpoch());
 
-    for (int i = 0; i < MODEL_LENGTH; ++i) {
-        randomize(i, filledSquares);
+    QSet<int> filledSquares;
+    while (items.size() <= MODEL_LENGTH - 1) {
+       int item = qrand() % 16;
+       if (!filledSquares.contains(item)) {
+           items << item;
+           filledSquares << item;
+       } else {
+           continue;
+       }
     }
 
     if (!isSolvable() && onlySolvable) {
@@ -124,14 +97,13 @@ void Logic::setOnlySolvable(bool value)
 QHash<int, QByteArray> Logic::roleNames() const
 {
     QHash<int, QByteArray> names;
-    names.insert(Roles::Value     , "value");
-    names.insert(Roles::PositionX , "positionX");
-    names.insert(Roles::PositionY , "positionY");
+    names.insert(Roles::Value   , "value");
     return names;
 }
 
-int Logic::rowCount(const QModelIndex & ) const
+int Logic::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return impl->items.size();
 }
 
@@ -147,13 +119,10 @@ QVariant Logic::data(const QModelIndex & modelIndex, int role) const
         return QVariant();
     }
 
-    Tile & tile = impl->items[index];
-
-    switch (role) {
-    case Roles::Value    : return tile.value;
-    case Roles::PositionX: return tile.x;
-    case Roles::PositionY: return tile.y;
+    if (role == Roles::Value) {
+        return impl->items[index];
     }
+
     return QVariant();
 }
 
