@@ -20,6 +20,7 @@ struct Logic::Impl
 
     bool isSolvable();
     void mix();
+    int findIndexToMove(int fromIndex);
 
     bool onlySolvable;
     QList<int> items;
@@ -54,18 +55,43 @@ void Logic::Impl::mix()
 
     QSet<int> filledSquares;
     while (items.size() <= MODEL_LENGTH - 1) {
-       int item = qrand() % 16;
-       if (!filledSquares.contains(item)) {
-           items << item;
-           filledSquares << item;
-       } else {
-           continue;
-       }
+        int item = qrand() % 16;
+        if (!filledSquares.contains(item)) {
+            items << item;
+            filledSquares << item;
+        } else {
+            continue;
+        }
     }
 
     if (!isSolvable() && onlySolvable) {
         mix();
     }
+}
+
+int Logic::Impl::findIndexToMove(int fromIndex)
+{
+    int index = fromIndex + 1;
+    if (index < items.size() && !items[index] && index / 4 == fromIndex / 4) {
+        return index;
+    }
+
+    index = fromIndex - 1;
+    if (index >= 0 && !items[index] && index / ITEMS_IN_ROW == fromIndex / ITEMS_IN_ROW) {
+        return index;
+    }
+
+    index = fromIndex + ITEMS_IN_ROW;
+    if (index < items.size() && !items[index] && index % ITEMS_IN_ROW == fromIndex % ITEMS_IN_ROW) {
+        return index;
+    }
+
+    index = fromIndex - ITEMS_IN_ROW;
+    if (index >= 0 && !items[index] && index % ITEMS_IN_ROW == fromIndex % ITEMS_IN_ROW) {
+        return index;
+    }
+
+    return -1;
 }
 
 Logic::Logic(QObject *parent)
@@ -92,6 +118,29 @@ void Logic::setOnlySolvable(bool value)
         impl->onlySolvable = value;
         emit onlySolvableChanged();
     }
+}
+
+void Logic::move(int fromIndex)
+{
+    if (fromIndex < 0 || fromIndex >= impl->items.size() || impl->items[fromIndex] == 0) {
+        return;
+    }
+
+    int toIndex = impl->findIndexToMove(fromIndex);
+    if (toIndex == -1) {
+        return;
+    }
+
+    int lowest  = qMin(fromIndex, toIndex);
+    int highest = qMax(fromIndex, toIndex);
+    beginMoveRows(QModelIndex(), highest, highest, QModelIndex(), lowest);
+    impl->items.swap(highest, lowest);
+    endMoveRows();
+
+    qDebug() << "move" << highest << "to" << lowest;
+    QModelIndex topLeft = createIndex(lowest, 0);
+    QModelIndex bottomRight = createIndex(highest, 0);
+    emit dataChanged(topLeft, bottomRight);
 }
 
 QHash<int, QByteArray> Logic::roleNames() const

@@ -19,11 +19,14 @@ Window {
         cellHeight: board.squareHeight
 
         model: logic
+
         delegate: Rectangle {
+            id: tile
             width: board.squareWidth
             height: board.squareHeight
 
             border.color: "black"
+            opacity: value ? 1.0 : 0.1
 
             Text {
                 anchors.centerIn: parent
@@ -33,9 +36,14 @@ Window {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    console.log("Item clicked:", value)
+                    console.log("Item clicked:", index, value)
+                    logic.move(index)
                 }
             }
         }
+
+        move: Transition {
+                NumberAnimation { properties: "x,y"; duration: 500 }
+            }
     }
 }

@@ -16,6 +16,8 @@ public:
     bool onlySolvable() const;
     void setOnlySolvable(bool value);
 
+    Q_INVOKABLE void move(int fromIndex);
+
 signals:
     void onlySolvableChanged();
 
