@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>img/board.png</file>
+        <file>img/win_combo1.png</file>
+        <file>img/win_combo2.png</file>
     </qresource>
 </RCC>

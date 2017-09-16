@@ -162,6 +162,13 @@ void Logic::move(int fromIndex)
     }
 }
 
+void Logic::shuffle()
+{
+    beginResetModel();
+    impl->mix();
+    endResetModel();
+}
+
 QHash<int, QByteArray> Logic::roleNames() const
 {
     QHash<int, QByteArray> names;

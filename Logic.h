@@ -17,6 +17,7 @@ public:
     void setOnlySolvable(bool value);
 
     Q_INVOKABLE void move(int fromIndex);
+    Q_INVOKABLE void shuffle();
 
 signals:
     void onlySolvableChanged();
