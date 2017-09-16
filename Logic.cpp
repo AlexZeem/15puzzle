@@ -13,7 +13,7 @@ enum Roles {
 struct Logic::Impl
 {
     Impl()
-        : onlySolvable(true)
+        : moveCount(0)
     {
         mix();
     }
@@ -23,30 +23,44 @@ struct Logic::Impl
     void mix();
     int findIndexToMove(int fromIndex);
 
-    bool onlySolvable;
+    int moveCount;
     QList<int> items;
 };
 
 bool Logic::Impl::isSolvable()
 {
-    int n = 0;
-    int prevValue = items[0];
-    if (prevValue == 0) {
-        n = 1;
-    }
+    int parity = 0;
+    int row = 0;
+    int blankRow = 0;
+    bool isSolvable = false;
 
-    for (int i = 1; i < items.size(); ++i) {
-        if (items[i] == 0) {
-            n += i % ITEMS_IN_ROW + 1;
-        } else if (prevValue > items[i]) {
-            n += 1;
+    for (int i = 0; i < items.size(); ++i)
+    {
+        if (i % ITEMS_IN_ROW == 0) {
+            row++;
         }
 
-        prevValue = items[i];
+        if (items[i] == 0) {
+            blankRow = row;
+            continue;
+        }
+
+        for (int j = i + 1; j < items.size(); ++j)
+        {
+            if (items[i] > items[j] && items[j] != 0)
+            {
+                parity++;
+            }
+        }
     }
 
-    qDebug() << "isSolvable" << n << (n % 2 == 0);
-    return (n % 2 == 0);
+    if (blankRow % 2 == 0) {
+        isSolvable = parity % 2 == 0;
+    } else {
+        isSolvable = parity % 2 != 0;
+    }
+
+    return isSolvable;
 }
 
 bool Logic::Impl::gameOver()
@@ -67,19 +81,17 @@ void Logic::Impl::mix()
     qsrand (QDateTime::currentMSecsSinceEpoch());
 
     QSet<int> filledSquares;
-    while (items.size() <= MODEL_LENGTH - 2) {
+    while (items.size() <= MODEL_LENGTH - 1) {
         int item = qrand() % 16;
-        if (item > 0 && !filledSquares.contains(item)) {
+        if (!filledSquares.contains(item)) {
             items << item;
             filledSquares << item;
         } else {
             continue;
         }
     }
-    items << 0;
 
-
-    if (!isSolvable() && onlySolvable) {
+    if (!isSolvable()) {
         mix();
     }
 }
@@ -122,17 +134,9 @@ int Logic::itemsInRow() const
     return ITEMS_IN_ROW;
 }
 
-bool Logic::onlySolvable() const
+int Logic::moveCounter() const
 {
-    return impl->onlySolvable;
-}
-
-void Logic::setOnlySolvable(bool value)
-{
-    if (value != impl->onlySolvable) {
-        impl->onlySolvable = value;
-        emit onlySolvableChanged();
-    }
+    return impl->moveCount;
 }
 
 void Logic::move(int fromIndex)
@@ -152,13 +156,17 @@ void Logic::move(int fromIndex)
     impl->items.swap(highest, lowest);
     endMoveRows();
 
-    qDebug() << "move" << highest << "to" << lowest;
+    impl->moveCount++;
+    emit moveCounterChanged();
+
     QModelIndex topLeft = createIndex(lowest, 0);
     QModelIndex bottomRight = createIndex(highest, 0);
     emit dataChanged(topLeft, bottomRight);
 
     if (impl->items.first() == 0 || impl->items.last() == 0) {
-        qDebug() << "Game over?" << impl->gameOver() << "(" << impl->isSolvable() << ")";
+        if (impl->gameOver()) {
+            emit gameOver();
+        }
     }
 }
 
@@ -167,6 +175,9 @@ void Logic::shuffle()
     beginResetModel();
     impl->mix();
     endResetModel();
+
+    impl->moveCount = 0;
+    emit moveCounterChanged();
 }
 
 QHash<int, QByteArray> Logic::roleNames() const

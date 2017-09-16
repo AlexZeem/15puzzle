@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>img/board.png</file>
-        <file>img/win_combo1.png</file>
-        <file>img/win_combo2.png</file>
+        <file>res/img/board.png</file>
+        <file>res/img/win_combo.png</file>
     </qresource>
 </RCC>

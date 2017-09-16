@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     Logic logic;
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("logic", &logic);
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/res/qml/main.qml")));
 
     return app.exec();
 }
