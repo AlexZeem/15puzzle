@@ -2,48 +2,37 @@ import QtQuick 2.6
 import QtQuick.Window 2.2
 
 Window {
-    readonly property int squareMinSize: 70
+    id: root
+    readonly property int squareSize: 70
     visible: true
-    width: logic.itemsInRow * squareMinSize
-    height: logic.itemsInRow * squareMinSize
+    width: 320
+    height: 480
     title: qsTr("15 puzzle")
+
+    Image {
+        anchors.fill: parent
+        source: "/img/board.png"
+    }
 
     GridView {
         id: board
-        property int squareWidth: parent.width / logic.itemsInRow
-        property int squareHeight: parent.height / logic.itemsInRow
+        width: logic.itemsInRow * squareSize
+        height: logic.itemsInRow * squareSize
 
-        anchors.fill: parent
+        anchors.centerIn: parent
 
-        cellWidth: board.squareWidth
-        cellHeight: board.squareHeight
+        cellWidth: squareSize
+        cellHeight: squareSize
 
         model: logic
 
-        delegate: Rectangle {
-            id: tile
-            width: board.squareWidth
-            height: board.squareHeight
-
-            border.color: "black"
-            opacity: value ? 1.0 : 0.1
-
-            Text {
-                anchors.centerIn: parent
-                text: value ? value : ""
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    console.log("Item clicked:", index, value)
-                    logic.move(index)
-                }
-            }
+        delegate: Tile {
+            width: squareSize
+            height: squareSize
         }
 
         move: Transition {
-                NumberAnimation { properties: "x,y"; duration: 500 }
-            }
+            NumberAnimation { properties: "x,y"; duration: 500 }
+        }
     }
 }
