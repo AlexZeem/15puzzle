@@ -19,6 +19,7 @@ struct Logic::Impl
     }
 
     bool isSolvable();
+    bool gameOver();
     void mix();
     int findIndexToMove(int fromIndex);
 
@@ -48,21 +49,35 @@ bool Logic::Impl::isSolvable()
     return (n % 2 == 0);
 }
 
+bool Logic::Impl::gameOver()
+{
+    int prevValue = items[0];
+    for (int i = 1; i < items.size(); ++i) {
+        if (prevValue > items[i] && prevValue != 0 && items[i] != 0) {
+            return false;
+        }
+        prevValue = items[i];
+    }
+    return true;
+}
+
 void Logic::Impl::mix()
 {
     items.clear();
     qsrand (QDateTime::currentMSecsSinceEpoch());
 
     QSet<int> filledSquares;
-    while (items.size() <= MODEL_LENGTH - 1) {
+    while (items.size() <= MODEL_LENGTH - 2) {
         int item = qrand() % 16;
-        if (!filledSquares.contains(item)) {
+        if (item > 0 && !filledSquares.contains(item)) {
             items << item;
             filledSquares << item;
         } else {
             continue;
         }
     }
+    items << 0;
+
 
     if (!isSolvable() && onlySolvable) {
         mix();
@@ -141,6 +156,10 @@ void Logic::move(int fromIndex)
     QModelIndex topLeft = createIndex(lowest, 0);
     QModelIndex bottomRight = createIndex(highest, 0);
     emit dataChanged(topLeft, bottomRight);
+
+    if (impl->items.first() == 0 || impl->items.last() == 0) {
+        qDebug() << "Game over?" << impl->gameOver() << "(" << impl->isSolvable() << ")";
+    }
 }
 
 QHash<int, QByteArray> Logic::roleNames() const
