@@ -7,7 +7,7 @@ Item {
         id: tile
         anchors.fill: parent
         border.color: "grey"
-        opacity: value ? 0.5 : 0.1
+        opacity: value ? 0.5 : 0
         radius: 10
 
         MouseArea {

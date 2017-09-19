@@ -150,15 +150,15 @@ void Logic::move(int fromIndex)
         return;
     }
 
-    int lowest  = qMin(fromIndex, toIndex);
-    int highest = qMax(fromIndex, toIndex);
-    beginMoveRows(QModelIndex(), highest, highest, QModelIndex(), lowest);
-    impl->items.swap(highest, lowest);
+    beginMoveRows(QModelIndex(), fromIndex, fromIndex, QModelIndex(), toIndex + (fromIndex < toIndex ? 1 : 0));
+    impl->items.swap(fromIndex, toIndex);
     endMoveRows();
 
     impl->moveCount++;
     emit moveCounterChanged();
 
+    int lowest  = qMin(fromIndex, toIndex);
+    int highest = qMax(fromIndex, toIndex);
     QModelIndex topLeft = createIndex(lowest, 0);
     QModelIndex bottomRight = createIndex(highest, 0);
     emit dataChanged(topLeft, bottomRight);
